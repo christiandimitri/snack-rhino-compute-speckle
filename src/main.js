@@ -27,6 +27,5 @@ window.rhino3dm().then(async (rhino) => {
     app.config.globalProperties.$OrbitControls = OrbitControls
     console.log('OrbitControls loaded')
   }
+  app.mount('#app')
 })
-
-app.mount('#app')
