@@ -5,7 +5,7 @@ import App from './App.vue'
 import router from './router'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-
+import { Rhino3dmLoader } from 'three/examples/jsm/loaders/3DMLoader'
 const app = createApp(App)
 
 app.use(router)
@@ -26,6 +26,10 @@ window.rhino3dm().then(async (rhino) => {
   if (OrbitControls != null) {
     app.config.globalProperties.$OrbitControls = OrbitControls
     console.log('OrbitControls loaded')
+  }
+  if (Rhino3dmLoader != null) {
+    app.config.globalProperties.$Rhino3dmLoader = Rhino3dmLoader
+    console.log('Rhino3dmLoader loaded')
   }
   app.mount('#app')
 })
