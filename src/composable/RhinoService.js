@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-export function RhinoServices() {
+export function RhinoService() {
   const url = ref('')
   const definition = ref()
   function getAuth(key) {

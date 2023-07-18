@@ -1,7 +1,7 @@
 <!-- eslint-disable no-unused-vars -->
 
 <script>
-import { shallowRef } from 'vue'
+import { ref, shallowRef } from 'vue'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { Rhino3dmLoader } from 'three/examples/jsm/loaders/3DMLoader'
@@ -18,6 +18,7 @@ export default {
     var camera = shallowRef(null)
     var renderer = shallowRef(null)
     var doc = shallowRef(null)
+    const sendToSpeckle = ref(false)
     return {
       rhino3dm,
       three,
@@ -27,7 +28,14 @@ export default {
       scene,
       camera,
       renderer,
-      doc
+      doc,
+      sendToSpeckle
+    }
+  },
+  watch: {
+    sendToSpeckle(now, before) {
+      if (now == true) this.onParamChanged()
+      console.log(now, before)
     }
   },
   created() {
@@ -55,7 +63,7 @@ export default {
   },
   async mounted() {},
   methods: {
-    collectResults(responseJson) {
+    async collectResults(responseJson) {
       var values = responseJson.values
 
       // clear doc
@@ -115,6 +123,7 @@ export default {
       )
     },
     initThree() {
+      THREE.Object3D.DEFAULT_UP.set(0, 0, 1)
       // Rhino models are z-up, so set this as the default
       this.three.Object3D.DefaultUp = new this.three.Vector3(0, 0, 1)
 
@@ -144,32 +153,27 @@ export default {
       this.animate()
     },
     async compute() {
-      const crvPoints = new this.$rhino.Point3dList()
-      crvPoints.add(0, 0, 0)
-      crvPoints.add(10, 10, 0)
-      crvPoints.add(20, -10, 0)
-      crvPoints.add(30, 10, 20)
-      crvPoints.add(40, -10, -20)
-      crvPoints.add(50, 0, 0)
-
-      const nCrv = this.$rhino.NurbsCurve.create(false, 3, crvPoints)
-
-      const crvData = JSON.stringify(nCrv.encode())
-
-      const param1 = new this.$rhinoCompute.Grasshopper.DataTree('curve')
-      param1.append([0], [crvData])
+      const streamToggle = this.sendToSpeckle
+      const streamToggleParam = new this.$rhinoCompute.Grasshopper.DataTree('streamToggle')
+      streamToggleParam.append([0], [streamToggle])
+      const streamUrl = 'https://speckle.xyz/streams/c68047deaf'
+      const streamIdParam = new this.$rhinoCompute.Grasshopper.DataTree('streamId')
+      streamIdParam.append([1], [streamUrl])
+      const streamMessage = 'This data is sent from the rhino.compute in the vite app'
+      const streamMessageParam = new this.$rhinoCompute.Grasshopper.DataTree('streamMessage')
+      streamMessageParam.append([2], [streamMessage])
 
       // clear values
       let trees = []
-      trees.push(param1)
+      // trees.push(param1)
+      trees.push(streamToggleParam)
+      trees.push(streamIdParam)
+      trees.push(streamMessageParam)
 
       // Call $rhinoCompute
-
       const res = await this.$rhinoCompute.Grasshopper.evaluateDefinition(this.definition, trees)
-
       console.log(res)
-
-      this.collectResults(res)
+      await this.collectResults(res)
     },
     decodeItem(item) {
       var data = JSON.parse(item.data)
@@ -212,11 +216,86 @@ export default {
     animate() {
       requestAnimationFrame(this.animate)
       this.renderer.render(this.scene, this.camera)
+    },
+    send() {
+      this.sendToSpeckle = !this.sendToSpeckle
+    },
+    async onParamChanged() {
+      await this.compute()
     }
   }
 }
 </script>
 
 <template>
-  <main></main>
+  <main>
+    <label class="switch">
+      <input value="checkbox" v-model="sendToSpeckle" type="checkbox" />
+      <span class="slider round"></span>
+    </label>
+  </main>
 </template>
+<style>
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: '';
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+input:checked + .slider {
+  background-color: #2196f3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196f3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+</style>
