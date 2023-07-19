@@ -21,8 +21,7 @@ ThreeService.prototype.init = function () {
   this.controls = constructOrbitControls(this.camera, this.renderer)
 
   window.addEventListener('resize', this.onWindowResize, false)
-
-  animate(this.renderer, this.scene, this.camera)
+  this.animate()
 }
 function constructRenderer() {
   const renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -42,8 +41,9 @@ function constructCamera() {
   camera.position.z = 25
   return camera
 }
-
-function animate(renderer, scene, camera) {
-  // requestAnimationFrame(animate)
-  renderer.render(scene, camera)
+// set the animator
+ThreeService.prototype.animate = function () {
+  //TODO
+  // requestAnimationFrame(this.animate)
+  this.renderer.render(this.scene, this.camera)
 }

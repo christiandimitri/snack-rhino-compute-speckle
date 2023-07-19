@@ -8,11 +8,11 @@ app.use(router)
 
 window.rhino3dm().then(async (rhino) => {
   if (rhino != null) {
-    app.config.globalProperties.$rhino = rhino
+    app.config.globalProperties.rhino = rhino
     console.log('Rhino3dm loaded')
   }
   if (window.RhinoCompute != null) {
-    app.config.globalProperties.$rhinoCompute = window.RhinoCompute
+    app.config.globalProperties.rhinoCompute = window.RhinoCompute
     console.log('Rhino.Compute', window.RhinoCompute.version)
   }
   app.mount('#app')

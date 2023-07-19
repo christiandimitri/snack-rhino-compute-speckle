@@ -1,29 +1,43 @@
-import { ref } from 'vue'
-export function RhinoService() {
-  const url = ref('')
-  const definition = ref()
-  function getAuth(key) {
-    url.value = localStorage[key]
-    if (url.value === undefined) {
-      const prompt = key.includes('URL') ? 'Server URL' : 'Server API Key'
-      url.value = window.prompt('RhinoCompute ' + prompt)
-      if (url.value !== null) {
-        localStorage.setItem(key, url.value)
-      }
-    }
-  }
-  async function sourceGrasshoperFile(definitionName) {
-    // source a .gh / .ghx file in the same directory
-    let url = definitionName
-    let res = await fetch(url)
-    let buffer = await res.arrayBuffer()
-    definition.value = new Uint8Array(buffer)
-  }
+/* eslint-disable no-unused-vars */
+export default function RhinoService(rhinoCompute, rhino) {
+  this.rhinoCompute = rhinoCompute
+  this.rhino = rhino
+  this.setServerAuth()
+}
+RhinoService.prototype.setServerAuth = function () {
+  this.rhinoCompute.authToken = import.meta.env.VITE_COMPUTE_AUTH_TOKEN
+  this.rhinoCompute.url = import.meta.env.VITE_COMPUTE_SERVER_URL
+  console.log('auth successful', this.rhinoCompute)
+}
+RhinoService.prototype.getGrasshoperFile = async function () {
+  let url = import.meta.env.VITE_GRASSHOPPER_FILE_PATH
+  let res = await fetch(url)
+  let buffer = await res.arrayBuffer()
+  this.grasshopperDefinition = new Uint8Array(buffer)
+}
+RhinoService.prototype.computeGrasshopperDefinition = async function (sendToSpeckle) {
+  const trees = ConstructParameters(sendToSpeckle, this.rhinoCompute)
+  const grasshopperDefinition = this.grasshopperDefinition
+  return new Promise((resolve) => {
+    resolve(this.rhinoCompute.Grasshopper.evaluateDefinition(grasshopperDefinition, trees))
+  })
+}
+function ConstructParameters(sendToSpeckle, rhinoCompute) {
+  const streamToggle = sendToSpeckle
+  const streamToggleParam = new rhinoCompute.Grasshopper.DataTree('streamToggle')
+  streamToggleParam.append([0], [streamToggle])
+  const streamUrl = import.meta.env.VITE_SPECKLE_STREAM_URL
+  const streamIdParam = new rhinoCompute.Grasshopper.DataTree('streamId')
+  streamIdParam.append([1], [streamUrl])
+  const streamMessage = 'This data is sent from the rhino.compute in the vite app'
+  const streamMessageParam = new rhinoCompute.Grasshopper.DataTree('streamMessage')
+  streamMessageParam.append([2], [streamMessage])
 
-  return {
-    url,
-    definition,
-    getAuth,
-    sourceGrasshoperFile
-  }
+  // clear values
+  let trees = []
+  // trees.push(param1)
+  trees.push(streamToggleParam)
+  trees.push(streamIdParam)
+  trees.push(streamMessageParam)
+  return trees
 }
