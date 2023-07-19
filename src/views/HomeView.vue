@@ -44,22 +44,22 @@ export default {
   async beforeMount() {
     console.log('before Mounted')
 
-    if (THREE != null) {
-      this.three = THREE
-      console.log('THREE loaded')
-    }
-    if (OrbitControls != null) {
-      this.orbitControls = OrbitControls
-      console.log('OrbitControls loaded')
-    }
-    if (Rhino3dmLoader != null) {
-      this.rhino3dmLoader = Rhino3dmLoader
-      console.log('Rhino3dmLoader loaded')
-    }
-    this.setServerAuth()
-    await this.getGrasshoperFile(import.meta.env.VITE_GRASSHOPPER_FILE_PATH)
-    this.initThree()
-    await this.compute()
+    // if (THREE != null) {
+    //   this.three = THREE
+    //   console.log('THREE loaded')
+    // }
+    // if (OrbitControls != null) {
+    //   this.orbitControls = OrbitControls
+    //   console.log('OrbitControls loaded')
+    // }
+    // if (Rhino3dmLoader != null) {
+    //   this.rhino3dmLoader = Rhino3dmLoader
+    //   console.log('Rhino3dmLoader loaded')
+    // }
+    // this.setServerAuth()
+    // await this.getGrasshoperFile(import.meta.env.VITE_GRASSHOPPER_FILE_PATH)
+    // this.initThree()
+    // await this.compute()
   },
   async mounted() {},
   methods: {
